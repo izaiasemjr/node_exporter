@@ -27,36 +27,33 @@ import (
 )
 
 const (
-	memInfoSubsystem = "memory"
+	pcoipSubsystem = "pcoip"
 )
 
-type meminfoCollector struct {
+type pcoipCollector struct {
 	logger log.Logger
 }
 
 func init() {
-	registerCollector("meminfo", defaultEnabled, NewMeminfoCollector)
+	registerCollector("pcoip", defaultEnabled, NewPcoipCollector)
 }
 
-// NewMeminfoCollector returns a new Collector exposing memory stats.
-func NewMeminfoCollector(logger log.Logger) (Collector, error) {
-	return &meminfoCollector{logger}, nil
+// NewPcoipCollector returns a new Collector exposing memory stats.
+func NewPcoipCollector(logger log.Logger) (Collector, error) {
+	return &pcoipCollector{logger}, nil
 }
 
-// Update calls (*meminfoCollector).getMemInfo to get the platform specific
+// Update calls (*pcoipCollector).getPcoipInfo to get the platform specific
 // memory metrics.
-func (c *meminfoCollector) Update(ch chan<- prometheus.Metric) error {
+func (p *pcoipCollector) Update(ch chan<- prometheus.Metric) error {
 	var metricType prometheus.ValueType
-	memInfo, err := c.getMemInfo()
+	pcoipInfo, err := p.getPcoipInfo()
 	if err != nil {
 		return fmt.Errorf("couldn't get meminfo: %w", err)
 	}
-	level.Debug(c.logger).Log("msg", "Set node_mem", "memInfo", memInfo)
+	level.Debug(p.logger).Log("msg", "Set node_mem", "memInfo", pcoipInfo)
 
-	for k, v := range memInfo {
-		c.logger.Log("k: ", k)
-		c.logger.Log("v: ", v)
-		c.logger.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+	for k, v := range pcoipInfo {
 
 		if strings.HasSuffix(k, "_total") {
 			metricType = prometheus.CounterValue
@@ -65,8 +62,8 @@ func (c *meminfoCollector) Update(ch chan<- prometheus.Metric) error {
 		}
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(
-				prometheus.BuildFQName(namespace, memInfoSubsystem, k),
-				fmt.Sprintf("Memory information field %s.", k),
+				prometheus.BuildFQName(namespace, pcoipSubsystem, k),
+				fmt.Sprintf("Pcoip information field %s.", k),
 				nil, nil,
 			),
 			metricType, v,

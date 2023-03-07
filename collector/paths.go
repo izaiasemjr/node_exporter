@@ -27,7 +27,12 @@ var (
 	sysPath      = kingpin.Flag("path.sysfs", "sysfs mountpoint.").Default("/sys").String()
 	rootfsPath   = kingpin.Flag("path.rootfs", "rootfs mountpoint.").Default("/").String()
 	udevDataPath = kingpin.Flag("path.udev.data", "udev data path.").Default("/run/udev/data").String()
+	pcoipPath    = kingpin.Flag("path.pcoip", "pcoip agent.").Default("/var/log/pcoip-agent").String()
 )
+
+func pcoipFilePath(name string) string {
+	return filepath.Join(*pcoipPath, name)
+}
 
 func procFilePath(name string) string {
 	return filepath.Join(*procPath, name)

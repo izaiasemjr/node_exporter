@@ -27,36 +27,33 @@ import (
 )
 
 const (
-	memInfoSubsystem = "memory"
+	templateSubsystem = "memory"
 )
 
-type meminfoCollector struct {
+type templateCollector struct {
 	logger log.Logger
 }
 
 func init() {
-	registerCollector("meminfo", defaultEnabled, NewMeminfoCollector)
+	registerCollector("templateInfo", defaultEnabled, NewTemplateCollector)
 }
 
-// NewMeminfoCollector returns a new Collector exposing memory stats.
-func NewMeminfoCollector(logger log.Logger) (Collector, error) {
-	return &meminfoCollector{logger}, nil
+// NewTemplateCollector returns a new Collector exposing memory stats.
+func NewTemplateCollector(logger log.Logger) (Collector, error) {
+	return &templateCollector{logger}, nil
 }
 
-// Update calls (*meminfoCollector).getMemInfo to get the platform specific
+// Update calls (*templateCollector).gettemplate to get the platform specific
 // memory metrics.
-func (c *meminfoCollector) Update(ch chan<- prometheus.Metric) error {
+func (t *templateCollector) Update(ch chan<- prometheus.Metric) error {
 	var metricType prometheus.ValueType
-	memInfo, err := c.getMemInfo()
+	templateInfo, err := t.getTemplateInfo()
 	if err != nil {
-		return fmt.Errorf("couldn't get meminfo: %w", err)
+		return fmt.Errorf("couldn't get templateinfo: %w", err)
 	}
-	level.Debug(c.logger).Log("msg", "Set node_mem", "memInfo", memInfo)
+	level.Debug(t.logger).Log("msg", "Set node_mem", "templateInfo", templateInfo)
 
-	for k, v := range memInfo {
-		c.logger.Log("k: ", k)
-		c.logger.Log("v: ", v)
-		c.logger.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+	for k, v := range templateInfo {
 
 		if strings.HasSuffix(k, "_total") {
 			metricType = prometheus.CounterValue
@@ -65,8 +62,8 @@ func (c *meminfoCollector) Update(ch chan<- prometheus.Metric) error {
 		}
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(
-				prometheus.BuildFQName(namespace, memInfoSubsystem, k),
-				fmt.Sprintf("Memory information field %s.", k),
+				prometheus.BuildFQName(namespace, templateSubsystem, k),
+				fmt.Sprintf("Template information field %s.", k),
 				nil, nil,
 			),
 			metricType, v,
