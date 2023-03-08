@@ -23,6 +23,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 /*
@@ -51,7 +52,7 @@ var (
 		[]string{"tbl", "fps", "image_quality"},
 		[]string{"bits_per_pixel", "bits_per_sec", "MPix_per_sec"},
 	}
-	regSessionClosed = regexp.MustCompile(`Session closed remotely!`)
+	regSessionClosed = regexp.MustCompile(`Session (closed) remotely!`)
 )
 
 func (p *pcoipCollector) getPcoipInfo() (map[string]float64, error) {
@@ -70,8 +71,24 @@ func parsePcoipInfo(r io.Reader) (map[string]float64, error) {
 		scanner   = bufio.NewScanner(r)
 	)
 
+	first := true
+
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		if first {
+			stringDate := line[:24]
+			date, err := time.Parse("2006-01-02T15:04:05.000Z", stringDate)
+			if err != nil {
+				fmt.Printf("err: %s\n", err.Error())
+			}
+			pcoipInfo["session_duration"] = time.Now().Sub(date).Seconds()
+			first = false
+		}
+
+		if len(regSessionClosed.FindStringSubmatch(line)) != 0 {
+			return map[string]float64{}, nil
+		}
 
 		for i, regex := range regexList {
 
